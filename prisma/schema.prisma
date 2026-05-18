@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +8,43 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+}
+
+model Song {
+  id        Int      @id @default(autoincrement())
+  artist    String
+  title     String
+  filePath  String?
+  rating    Int      @default(0)
+  plays     Int      @default(0)
+  wishes    Wish[]
+  votes     Vote[]
+  @@unique([artist, title])
+}
+
+model Wish {
+  id        Int      @id @default(autoincrement())
+  songId    Int?
+  song      Song?    @relation(fields: [songId], references: [id])
+  artist    String
+  title     String
+  weblink   String?
+  rating    Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Vote {
+  id        Int      @id @default(autoincrement())
+  songId    Int
+  song      Song     @relation(fields: [songId], references: [id])
+  voterIp   String
+  value     Int
+  createdAt DateTime @default(now())
+}
+
+model NowPlaying {
+  id        Int      @id @default(autoincrement())
+  artist    String
+  title     String
+  updatedAt DateTime @updatedAt
 }
