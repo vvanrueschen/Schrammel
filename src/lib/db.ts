@@ -3,6 +3,11 @@ import type { RankingEntry } from "@/types";
 
 export async function getTopRankings(limit = 10): Promise<RankingEntry[]> {
   const songs = await prisma.song.findMany({
+    where: {
+      votes: {
+        some: {},
+      },
+    },
     orderBy: { rating: "desc" },
     take: limit,
     select: { artist: true, title: true, rating: true },
@@ -97,6 +102,11 @@ export async function getAllSongs() {
 
 export async function getBottomRankings(limit = 10): Promise<RankingEntry[]> {
   const songs = await prisma.song.findMany({
+    where: {
+      votes: {
+        some: {},
+      },
+    },
     orderBy: { rating: "asc" },
     take: limit,
     select: { artist: true, title: true, rating: true },
