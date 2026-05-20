@@ -18,5 +18,8 @@ services:
     image: alpine:latest
     volumes:
       - ./cron/schrammel-crontab:/etc/crontabs/root
-    command: crond -f
+      - ./cron/cleanup.sh:/cleanup.sh:ro
+    environment:
+      - CLEANUP_SECRET_TOKEN=${CLEANUP_SECRET_TOKEN}
+    command: sh -c "chmod +x /cleanup.sh && crond -f"
     restart: unless-stopped
