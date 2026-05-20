@@ -15,9 +15,9 @@ export interface WishPayload {
   weblink?: string;
 }
 
-export interface WishRatingPayload {
-  wsongid: string;
-  wrating: string;
+export interface WishVotePayload {
+  wishId: string;
+  vote: "+" | "-";
 }
 
 export interface RankingEntry {

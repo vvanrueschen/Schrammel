@@ -7,7 +7,8 @@ interface Wish {
   artist: string;
   title: string;
   weblink: string | null;
-  rating: number;
+  upvotes: number;
+  downvotes: number;
   createdAt: string;
 }
 
@@ -61,17 +62,12 @@ export default function Wishlist() {
     }
   };
 
-  const handleRate = async (wishId: number, rating: number) => {
-    if (rating < 0 || rating > 10) {
-      alert("Es muss eine Bewertung von 0 bis 10 abgegeben werden.");
-      return;
-    }
-
+  const handleVote = async (wishId: number, direction: "+" | "-") => {
     const formData = new FormData();
-    formData.append("wsongid", wishId.toString());
-    formData.append("wrating", rating.toString());
+    formData.append("wishId", wishId.toString());
+    formData.append("vote", direction);
 
-    const res = await fetch("/api/wish/rate", {
+    const res = await fetch("/api/wish/vote", {
       method: "POST",
       body: formData,
     });
@@ -129,25 +125,18 @@ export default function Wishlist() {
                 <span className="wish-title">{wish.title}</span>
                 <span className="wish-artist">{wish.artist}</span>
               </div>
-              <div className="wish-rating">
-                <input
-                  type="number"
-                  min="0"
-                  max="10"
-                  defaultValue={wish.rating}
-                  className="rating-input"
-                  id={`rating-${wish.id}`}
-                />
+              <div className="wish-votes">
                 <button
-                  onClick={() => {
-                    const input = document.getElementById(
-                      `rating-${wish.id}`
-                    ) as HTMLInputElement;
-                    handleRate(wish.id, parseInt(input.value, 10));
-                  }}
-                  className="neon-btn neon-btn-sm"
+                  onClick={() => handleVote(wish.id, "+")}
+                  className="neon-btn neon-btn-sm vote-btn upvote"
                 >
-                  Rate
+                  ▲ {wish.upvotes}
+                </button>
+                <button
+                  onClick={() => handleVote(wish.id, "-")}
+                  className="neon-btn neon-btn-sm vote-btn downvote"
+                >
+                  ▼ {wish.downvotes}
                 </button>
               </div>
             </li>

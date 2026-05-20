@@ -72,21 +72,36 @@ export async function createWish(
   return { success: true, message: "Record updated successfully" };
 }
 
-export async function rateWish(
+export async function voteOnWish(
   wishId: number,
-  rating: number
+  value: number,
+  voterIp: string
 ): Promise<{ success: boolean; message: string }> {
-  if (rating < 0 || rating > 10) {
-    return {
-      success: false,
-      message: "Es muss eine Bewertung von 0 bis 10 abgegeben werden.",
-    };
+  const wish = await prisma.wish.findUnique({
+    where: { id: wishId },
+  });
+
+  if (!wish) {
+    return { success: false, message: "Wish not found" };
   }
 
-  await prisma.wish.update({
-    where: { id: wishId },
-    data: { rating },
+  const existingVote = await prisma.wishVote.findFirst({
+    where: { wishId, voterIp },
   });
+
+  if (existingVote) {
+    return { success: false, message: "Du hast diesen Wunsch bereits bewertet." };
+  }
+
+  await prisma.$transaction([
+    prisma.wishVote.create({
+      data: { wishId, voterIp, value },
+    }),
+    prisma.wish.update({
+      where: { id: wishId },
+      data: value === 1 ? { upvotes: { increment: 1 } } : { downvotes: { increment: 1 } },
+    }),
+  ]);
 
   return { success: true, message: "Record updated successfully" };
 }

@@ -30,8 +30,10 @@ model Wish {
   artist    String
   title     String
   weblink   String?
-  rating    Int      @default(0)
+  upvotes   Int      @default(0)
+  downvotes Int      @default(0)
   createdAt DateTime @default(now())
+  votes     WishVote[]
 }
 
 model Vote {
@@ -48,4 +50,13 @@ model NowPlaying {
   artist    String
   title     String
   updatedAt DateTime @updatedAt
+}
+
+model WishVote {
+  id        Int      @id @default(autoincrement())
+  wishId    Int
+  wish      Wish     @relation(fields: [wishId], references: [id])
+  voterIp   String
+  value     Int
+  createdAt DateTime @default(now())
 }
