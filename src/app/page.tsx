@@ -10,7 +10,7 @@ const STREAM_URL = "http://vinceberrypi/listen/schrammel_stream/schrammel";
 export default function Home() {
   const [currentArtist, setCurrentArtist] = useState("Der Schrammel.Reloaded.Stream");
   const [currentTitle, setCurrentTitle] = useState("Loading...");
-  const [voteDisabled, setVoteDisabled] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
   const [topTenRefreshKey, setTopTenRefreshKey] = useState(0);
 
   const fetchNowPlaying = useCallback(async () => {
@@ -20,7 +20,7 @@ export default function Home() {
         const data = await res.json();
         setCurrentArtist(data.artist);
         setCurrentTitle(data.title);
-        setVoteDisabled(false);
+        setHasVoted(data.hasVoted ?? false);
       }
     } catch {
       // ignore
@@ -34,7 +34,7 @@ export default function Home() {
   }, [fetchNowPlaying]);
 
   const handleVote = async (direction: "+" | "-") => {
-    if (voteDisabled) return;
+    if (hasVoted) return;
 
     const formData = new FormData();
     formData.append("artist", currentArtist);
@@ -45,7 +45,7 @@ export default function Home() {
     const result = await res.json();
 
     if (result.success) {
-      setVoteDisabled(true);
+      setHasVoted(true);
       setTopTenRefreshKey((k) => k + 1);
     } else {
       alert(result.message);
@@ -59,6 +59,7 @@ export default function Home() {
         onVote={handleVote}
         currentArtist={currentArtist}
         currentTitle={currentTitle}
+        hasVoted={hasVoted}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

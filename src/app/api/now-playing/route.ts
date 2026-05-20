@@ -1,11 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 const AZURACAST_API_URL = process.env.AZURACAST_API_URL || "http://vinceberrypi";
 const AZURACAST_API_TOKEN = process.env.AZURACAST_API_TOKEN || "";
 const STATION_ID = 1;
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const voterIp = request.headers.get("x-forwarded-for") || "127.0.0.1";
+
   try {
     const response = await fetch(
       `${AZURACAST_API_URL}/api/station/${STATION_ID}/nowplaying`,
@@ -22,10 +24,10 @@ export async function GET() {
       const nowPlaying = data.now_playing?.song;
 
       if (nowPlaying) {
-        return NextResponse.json({
-          artist: nowPlaying.artist || "Unknown Artist",
-          title: nowPlaying.text || nowPlaying.title || "Unknown Title",
-        });
+        const artist = nowPlaying.artist || "Unknown Artist";
+        const title = nowPlaying.text || nowPlaying.title || "Unknown Title";
+        const hasVoted = await checkHasVoted(artist, title, voterIp);
+        return NextResponse.json({ artist, title, hasVoted });
       }
     }
   } catch {
@@ -37,14 +39,31 @@ export async function GET() {
   });
 
   if (nowPlaying) {
+    const hasVoted = await checkHasVoted(nowPlaying.artist, nowPlaying.title, voterIp);
     return NextResponse.json({
       artist: nowPlaying.artist,
       title: nowPlaying.title,
+      hasVoted,
     });
   }
 
   return NextResponse.json({
     artist: "Der Schrammel.Reloaded.Stream",
     title: "No track info available",
+    hasVoted: false,
   });
+}
+
+async function checkHasVoted(artist: string, title: string, voterIp: string): Promise<boolean> {
+  const song = await prisma.song.findUnique({
+    where: { artist_title: { artist, title } },
+  });
+
+  if (!song) return false;
+
+  const vote = await prisma.vote.findFirst({
+    where: { songId: song.id, voterIp },
+  });
+
+  return !!vote;
 }

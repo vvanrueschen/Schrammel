@@ -109,6 +109,16 @@ body {
   transition: box-shadow 0.2s;
 }
 
+.vote-btn:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(100%);
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #555 !important;
+}
+
 .vote-down {
   background: rgba(255, 0, 110, 0.15);
   color: var(--neon-pink);

@@ -7,6 +7,7 @@ interface PlayerProps {
   onVote: (direction: "+" | "-") => void;
   currentArtist: string;
   currentTitle: string;
+  hasVoted: boolean;
 }
 
 export default function Player({
@@ -14,6 +15,7 @@ export default function Player({
   onVote,
   currentArtist,
   currentTitle,
+  hasVoted,
 }: PlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(100);
@@ -98,6 +100,7 @@ export default function Player({
               onClick={() => handleVote("-")}
               className="vote-btn vote-down"
               aria-label="Vote down"
+              disabled={hasVoted}
             >
               👎
             </button>
@@ -112,6 +115,7 @@ export default function Player({
               onClick={() => handleVote("+")}
               className="vote-btn vote-up"
               aria-label="Vote up"
+              disabled={hasVoted}
             >
               👍
             </button>
