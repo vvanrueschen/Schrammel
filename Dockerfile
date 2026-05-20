@@ -29,13 +29,8 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-COPY --chown=nextjs:nodejs <<'EOF' /app/start.sh
-#!/bin/sh
-set -e
-npx prisma migrate deploy
-exec node server.js
-EOF
-RUN chmod +x /app/start.sh
+RUN printf '#!/bin/sh\nset -e\nnpx prisma migrate deploy\nexec node server.js\n' > /app/start.sh \
+    && chmod +x /app/start.sh
 
 USER nextjs
 
