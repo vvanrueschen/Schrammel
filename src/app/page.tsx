@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Player from "@/components/Player";
 import TopTen from "@/components/TopTen";
+import BottomTen from "@/components/BottomTen";
 import Wishlist from "@/components/Wishlist";
 
 const STREAM_URL = "http://vinceberrypi/listen/schrammel_stream/schrammel";
@@ -12,6 +13,7 @@ export default function Home() {
   const [currentTitle, setCurrentTitle] = useState("Loading...");
   const [hasVoted, setHasVoted] = useState(false);
   const [topTenRefreshKey, setTopTenRefreshKey] = useState(0);
+  const [bottomTenRefreshKey, setBottomTenRefreshKey] = useState(0);
 
   const fetchNowPlaying = useCallback(async () => {
     try {
@@ -47,6 +49,7 @@ export default function Home() {
     if (result.success) {
       setHasVoted(true);
       setTopTenRefreshKey((k) => k + 1);
+      setBottomTenRefreshKey((k) => k + 1);
     } else {
       alert(result.message);
     }
@@ -66,6 +69,8 @@ export default function Home() {
         <TopTen refreshKey={topTenRefreshKey} />
         <Wishlist />
       </div>
+
+      <BottomTen refreshKey={bottomTenRefreshKey} />
     </div>
   );
 }
