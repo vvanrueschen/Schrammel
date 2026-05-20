@@ -1,0 +1,1 @@
+0 3 * * 0 curl -s -X POST -H "X-Cleanup-Token: change-me-to-a-secret-value" http://schrammel:3000/api/cleanup-worst-songs

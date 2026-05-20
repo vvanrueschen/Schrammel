@@ -11,4 +11,12 @@ services:
     environment:
       - DATABASE_URL=file:./prisma/dev.db
       - NODE_ENV=production
+      - CLEANUP_SECRET_TOKEN=${CLEANUP_SECRET_TOKEN}
+    restart: unless-stopped
+
+  cron:
+    image: alpine:latest
+    volumes:
+      - ./cron/schrammel-crontab:/etc/crontabs/root
+    command: crond -f
     restart: unless-stopped
