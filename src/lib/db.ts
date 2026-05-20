@@ -106,6 +106,7 @@ export async function getBottomRankings(limit = 10): Promise<RankingEntry[]> {
 
 const DELETION_MIN_VOTES = 3;
 const DELETION_MAX_RATING = -5;
+const DELETION_MAX_COUNT = 10;
 
 export async function cleanupWorstSongs(count = 3): Promise<{
   deleted: { artist: string; title: string; azuracastDeleted: boolean }[];
@@ -114,6 +115,7 @@ export async function cleanupWorstSongs(count = 3): Promise<{
   const AZURACAST_API_URL = process.env.AZURACAST_API_URL || "http://vinceberrypi";
   const AZURACAST_API_TOKEN = process.env.AZURACAST_API_TOKEN || "";
   const STATION_ID = 1;
+  const safeCount = Math.max(1, Math.min(count, DELETION_MAX_COUNT));
 
   const eligibleSongs = await prisma.song.findMany({
     where: {
@@ -123,7 +125,7 @@ export async function cleanupWorstSongs(count = 3): Promise<{
       },
     },
     orderBy: { rating: "asc" },
-    take: count,
+    take: safeCount,
     include: {
       _count: {
         select: { votes: true },
