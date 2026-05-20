@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
   });
 }
 
-async function backfillAzuracastId(artist: string, title: string, azuracastId: string): Promise<void> {
+async function backfillAzuracastId(artist: string, title: string, azuracastId: string | undefined): Promise<void> {
   if (!azuracastId) return;
   try {
     await prisma.song.updateMany({

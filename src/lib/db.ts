@@ -125,7 +125,7 @@ export async function cleanupWorstSongs(count = 3): Promise<{
       },
     },
     orderBy: { rating: "asc" },
-    take: safeCount,
+    take: DELETION_MAX_COUNT,
     include: {
       _count: {
         select: { votes: true },
@@ -133,9 +133,9 @@ export async function cleanupWorstSongs(count = 3): Promise<{
     },
   });
 
-  const filteredSongs = eligibleSongs.filter(
-    (s) => s._count.votes >= DELETION_MIN_VOTES
-  );
+  const filteredSongs = eligibleSongs
+    .filter((s) => s._count.votes >= DELETION_MIN_VOTES)
+    .slice(0, safeCount);
 
   const deleted: { artist: string; title: string; azuracastDeleted: boolean }[] = [];
 
