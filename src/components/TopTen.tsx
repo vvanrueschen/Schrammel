@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import type { RankingEntry } from "@/types";
 
-export default function TopTen() {
+interface TopTenProps {
+  refreshKey?: number;
+}
+
+export default function TopTen({ refreshKey = 0 }: TopTenProps) {
   const [rankings, setRankings] = useState<RankingEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,7 +25,7 @@ export default function TopTen() {
 
   useEffect(() => {
     fetchRankings();
-  }, []);
+  }, [refreshKey]);
 
   if (loading) {
     return (

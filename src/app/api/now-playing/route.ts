@@ -1,21 +1,30 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import * as fs from "fs";
-import * as path from "path";
+
+const AZURACAST_API_URL = process.env.AZURACAST_API_URL || "http://vinceberrypi";
+const AZURACAST_API_TOKEN = process.env.AZURACAST_API_TOKEN || "";
+const STATION_ID = 1;
 
 export async function GET() {
-  const xmlPath = path.join(process.cwd(), "Website", "playingnow.xml");
-
   try {
-    if (fs.existsSync(xmlPath)) {
-      const xmlContent = fs.readFileSync(xmlPath, "utf-8");
-      const artistMatch = xmlContent.match(/<Artist>(.*?)<\/Artist>/);
-      const titleMatch = xmlContent.match(/<Title>(.*?)<\/Title>/);
+    const response = await fetch(
+      `${AZURACAST_API_URL}/api/station/${STATION_ID}/nowplaying`,
+      {
+        headers: {
+          "X-API-Key": AZURACAST_API_TOKEN,
+        },
+        next: { revalidate: 10 },
+      }
+    );
 
-      if (artistMatch && titleMatch) {
+    if (response.ok) {
+      const data = await response.json();
+      const nowPlaying = data.now_playing?.song;
+
+      if (nowPlaying) {
         return NextResponse.json({
-          artist: artistMatch[1],
-          title: titleMatch[1],
+          artist: nowPlaying.artist || "Unknown Artist",
+          title: nowPlaying.text || nowPlaying.title || "Unknown Title",
         });
       }
     }

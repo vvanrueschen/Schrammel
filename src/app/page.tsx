@@ -1,22 +1,37 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Player from "@/components/Player";
 import TopTen from "@/components/TopTen";
 import Wishlist from "@/components/Wishlist";
 
-const STREAM_URL = "http://schrammelstream.ddns.net:8000/schrammel";
+const STREAM_URL = "http://vinceberrypi/listen/schrammel_stream/schrammel";
 
 export default function Home() {
   const [currentArtist, setCurrentArtist] = useState("Der Schrammel.Reloaded.Stream");
   const [currentTitle, setCurrentTitle] = useState("Loading...");
   const [voteDisabled, setVoteDisabled] = useState(false);
+  const [topTenRefreshKey, setTopTenRefreshKey] = useState(0);
 
-  const handleSongChange = useCallback((data: { artist: string; title: string }) => {
-    setCurrentArtist(data.artist);
-    setCurrentTitle(data.title);
-    setVoteDisabled(false);
+  const fetchNowPlaying = useCallback(async () => {
+    try {
+      const res = await fetch("/api/now-playing");
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentArtist(data.artist);
+        setCurrentTitle(data.title);
+        setVoteDisabled(false);
+      }
+    } catch {
+      // ignore
+    }
   }, []);
+
+  useEffect(() => {
+    fetchNowPlaying();
+    const interval = setInterval(fetchNowPlaying, 10000);
+    return () => clearInterval(interval);
+  }, [fetchNowPlaying]);
 
   const handleVote = async (direction: "+" | "-") => {
     if (voteDisabled) return;
@@ -31,6 +46,7 @@ export default function Home() {
 
     if (result.success) {
       setVoteDisabled(true);
+      setTopTenRefreshKey((k) => k + 1);
     } else {
       alert(result.message);
     }
@@ -46,7 +62,7 @@ export default function Home() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TopTen />
+        <TopTen refreshKey={topTenRefreshKey} />
         <Wishlist />
       </div>
     </div>

@@ -16,12 +16,14 @@ export async function voteOnSong(
   value: number,
   voterIp: string
 ): Promise<{ success: boolean; message: string }> {
-  const song = await prisma.song.findUnique({
+  let song = await prisma.song.findUnique({
     where: { artist_title: { artist, title } },
   });
 
   if (!song) {
-    return { success: false, message: "Song not found" };
+    song = await prisma.song.create({
+      data: { artist, title, rating: 0 },
+    });
   }
 
   const existingVote = await prisma.vote.findFirst({
