@@ -2,13 +2,17 @@ services:
   schrammel:
     build: .
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3000}:${APP_PORT:-3000}"
     volumes:
       - ./prisma:/app/prisma
     environment:
       - DATABASE_URL=file:./prisma/dev.db
       - NODE_ENV=production
       - CLEANUP_SECRET_TOKEN=${CLEANUP_SECRET_TOKEN}
+      - AZURACAST_API_URL=${AZURACAST_API_URL}
+      - AZURACAST_API_TOKEN=${AZURACAST_API_TOKEN}
+      - NEXT_PUBLIC_STREAM_URL=${NEXT_PUBLIC_STREAM_URL}
+      - PORT=${APP_PORT:-3000}
     restart: unless-stopped
 
   cron:
@@ -18,5 +22,6 @@ services:
       - ./cron/cleanup.sh:/cleanup.sh:ro
     environment:
       - CLEANUP_SECRET_TOKEN=${CLEANUP_SECRET_TOKEN}
+      - APP_PORT=${APP_PORT:-3000}
     command: sh -c "chmod +x /cleanup.sh && crond -f"
     restart: unless-stopped
