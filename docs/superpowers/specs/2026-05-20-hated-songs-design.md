@@ -1,7 +1,7 @@
 # Hated Songs / Bottom 10 & Cleanup Design
 
 **Date:** 2026-05-20
-**Status:** Draft
+**Status:** Approved
 
 ## Overview
 
@@ -91,22 +91,32 @@ Add `BottomTen` to `page.tsx` below the existing Top 10 / Wishlist grid:
 
 ## Section 3: Cleanup API & Scheduler
 
+### Deletion Threshold
+
+A song is only eligible for deletion if **both** conditions are met:
+- **Minimum vote count:** at least 3 votes total
+- **Minimum negative rating:** rating ≤ -5
+
+This prevents songs with few votes from being deleted prematurely. With ~15 users, this means roughly 1/3 of the userbase must have downvoted a song for it to qualify.
+
 ### API Route: `POST /api/cleanup-worst-songs`
 
 Protected endpoint — requires `X-Cleanup-Token` header matching `CLEANUP_SECRET_TOKEN` env var. The cron container passes this token.
 
 **Logic:**
-1. Find bottom 3 songs by rating (ascending order)
-2. For each song:
+1. Find bottom songs by rating (ascending order) that meet the deletion threshold
+2. Take up to 3 from the eligible set
+3. For each song:
    - If `azuracastId` exists, call AzuraCast API:
      `DELETE /api/station/1/file/{azuracastId}`
    - Delete all Votes for the song from our DB
    - Delete the Song from our DB
-3. Return summary: `{ deleted: [{ artist, title, azuracastDeleted }], count }`
+4. Return summary: `{ deleted: [{ artist, title, azuracastDeleted }], count }`
 
 **Error handling:**
 - If AzuraCast deletion fails, still delete from local DB (log the failure)
-- If fewer than 3 songs exist, delete what's available
+- If fewer than 3 eligible songs exist, delete what's available
+- If no songs meet the threshold, return `{ deleted: [], count: 0 }`
 
 ### DB Function: `cleanupWorstSongs(count = 3)`
 
@@ -145,7 +155,7 @@ User votes (-) on song
 
 Weekly cron fires
   → POST /api/cleanup-worst-songs
-  → Find 3 lowest-rated songs
+  → Find up to 3 songs meeting threshold (≥3 votes, rating ≤ -5)
   → For each: DELETE from AzuraCast (if azuracastId exists)
   → DELETE votes + song from SQLite
   → Bottom 10 refreshes on next page load
