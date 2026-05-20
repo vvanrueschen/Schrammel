@@ -5,9 +5,6 @@ services:
       - "3000:3000"
     volumes:
       - ./prisma:/app/prisma
-      - ./Schrammel:/app/Schrammel:ro
-      - ./Verpackung:/app/Verpackung:ro
-      - ./Website:/app/Website:ro
     environment:
       - DATABASE_URL=file:./prisma/dev.db
       - NODE_ENV=production

@@ -6,7 +6,7 @@ import TopTen from "@/components/TopTen";
 import BottomTen from "@/components/BottomTen";
 import Wishlist from "@/components/Wishlist";
 
-const STREAM_URL = "http://vinceberrypi/listen/schrammel_stream/schrammel";
+const STREAM_URL = "http://localhost/listen/schrammel_stream/schrammel";
 
 export default function Home() {
   const [currentArtist, setCurrentArtist] = useState("Der Schrammel.Reloaded.Stream");
