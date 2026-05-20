@@ -42,6 +42,9 @@ export default function BottomTen({ refreshKey = 0 }: BottomTenProps) {
   return (
     <div className="neon-card">
       <h2 className="section-title text-red-500">💀 Bottom 10</h2>
+      <p className="text-gray-400 text-xs mb-2">
+        Songs mit mindestens 3 Votes und einem Rating von -5 oder schlechter werden wöchentlich automatisch gelöscht.
+      </p>
       {rankings.length === 0 ? (
         <p className="text-gray-500 text-sm">Noch keine negativen Votes.</p>
       ) : (
