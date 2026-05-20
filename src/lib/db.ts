@@ -107,9 +107,8 @@ export async function voteOnWish(
 }
 
 export async function getWishes() {
-  return prisma.wish.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  const wishes = await prisma.wish.findMany();
+  return wishes.sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes));
 }
 
 export async function getAllSongs() {
