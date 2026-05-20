@@ -7,6 +7,9 @@ export async function getTopRankings(limit = 10): Promise<RankingEntry[]> {
       votes: {
         some: {},
       },
+      rating: {
+        gt: 0,
+      },
     },
     orderBy: { rating: "desc" },
     take: limit,
@@ -105,6 +108,9 @@ export async function getBottomRankings(limit = 10): Promise<RankingEntry[]> {
     where: {
       votes: {
         some: {},
+      },
+      rating: {
+        lt: 0,
       },
     },
     orderBy: { rating: "asc" },
