@@ -101,16 +101,18 @@ export default function Wishlist() {
             className="neon-input"
           />
         </div>
-        <input
-          type="text"
-          value={weblink}
-          onChange={(e) => setWeblink(e.target.value)}
-          placeholder="Weblink (optional)"
-          className="neon-input mb-3"
-        />
-        <button onClick={handleSubmit} className="neon-btn neon-btn-primary">
-          Einreichen
-        </button>
+        <div className="form-row">
+          <input
+            type="text"
+            value={weblink}
+            onChange={(e) => setWeblink(e.target.value)}
+            placeholder="Weblink (optional)"
+            className="neon-input"
+          />
+          <button onClick={handleSubmit} className="neon-btn neon-btn-primary">
+            Einreichen
+          </button>
+        </div>
       </div>
 
       {loading ? (
