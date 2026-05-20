@@ -103,3 +103,73 @@ export async function getBottomRankings(limit = 10): Promise<RankingEntry[]> {
   });
   return songs;
 }
+
+const DELETION_MIN_VOTES = 3;
+const DELETION_MAX_RATING = -5;
+
+export async function cleanupWorstSongs(count = 3): Promise<{
+  deleted: { artist: string; title: string; azuracastDeleted: boolean }[];
+  count: number;
+}> {
+  const AZURACAST_API_URL = process.env.AZURACAST_API_URL || "http://vinceberrypi";
+  const AZURACAST_API_TOKEN = process.env.AZURACAST_API_TOKEN || "";
+  const STATION_ID = 1;
+
+  const eligibleSongs = await prisma.song.findMany({
+    where: {
+      rating: { lte: DELETION_MAX_RATING },
+      votes: {
+        some: {},
+      },
+    },
+    orderBy: { rating: "asc" },
+    take: count,
+    include: {
+      _count: {
+        select: { votes: true },
+      },
+    },
+  });
+
+  const filteredSongs = eligibleSongs.filter(
+    (s) => s._count.votes >= DELETION_MIN_VOTES
+  );
+
+  const deleted: { artist: string; title: string; azuracastDeleted: boolean }[] = [];
+
+  for (const song of filteredSongs) {
+    let azuracastDeleted = false;
+
+    if (song.azuracastId) {
+      try {
+        const response = await fetch(
+          `${AZURACAST_API_URL}/api/station/${STATION_ID}/file/${song.azuracastId}`,
+          {
+            method: "DELETE",
+            headers: {
+              "X-API-Key": AZURACAST_API_TOKEN,
+            },
+          }
+        );
+        azuracastDeleted = response.ok;
+      } catch {
+        console.error(
+          `Failed to delete song "${song.artist} - ${song.title}" from AzuraCast`
+        );
+      }
+    }
+
+    await prisma.$transaction([
+      prisma.vote.deleteMany({ where: { songId: song.id } }),
+      prisma.song.delete({ where: { id: song.id } }),
+    ]);
+
+    deleted.push({
+      artist: song.artist,
+      title: song.title,
+      azuracastDeleted,
+    });
+  }
+
+  return { deleted, count: deleted.length };
+}
