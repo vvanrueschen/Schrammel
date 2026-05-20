@@ -26,6 +26,11 @@ export async function GET(request: NextRequest) {
       if (nowPlaying) {
         const artist = nowPlaying.artist || "Unknown Artist";
         const title = nowPlaying.text || nowPlaying.title || "Unknown Title";
+        const azuracastId = nowPlaying.id;
+
+        // Backfill azuracastId for matching song in our DB
+        await backfillAzuracastId(artist, title, azuracastId);
+
         const hasVoted = await checkHasVoted(artist, title, voterIp);
         return NextResponse.json({ artist, title, hasVoted });
       }
@@ -52,6 +57,21 @@ export async function GET(request: NextRequest) {
     title: "No track info available",
     hasVoted: false,
   });
+}
+
+async function backfillAzuracastId(artist: string, title: string, azuracastId: string): Promise<void> {
+  try {
+    await prisma.song.updateMany({
+      where: {
+        artist,
+        title,
+        azuracastId: null,
+      },
+      data: { azuracastId },
+    });
+  } catch {
+    // Ignore errors — backfill is best-effort
+  }
 }
 
 async function checkHasVoted(artist: string, title: string, voterIp: string): Promise<boolean> {
