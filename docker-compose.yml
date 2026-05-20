@@ -23,5 +23,5 @@ services:
     environment:
       - CLEANUP_SECRET_TOKEN=${CLEANUP_SECRET_TOKEN}
       - APP_PORT=${APP_PORT:-3000}
-    command: sh -c "chmod +x /cleanup.sh && crond -f"
+    command: crond -f
     restart: unless-stopped
