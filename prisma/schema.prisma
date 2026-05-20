@@ -14,9 +14,10 @@ model Song {
   id        Int      @id @default(autoincrement())
   artist    String
   title     String
-  filePath  String?
-  rating    Int      @default(0)
-  plays     Int      @default(0)
+  filePath    String?
+  azuracastId String?  // AzuraCast media ID for deletion via API
+  rating      Int      @default(0)
+  plays       Int      @default(0)
   wishes    Wish[]
   votes     Vote[]
   @@unique([artist, title])
