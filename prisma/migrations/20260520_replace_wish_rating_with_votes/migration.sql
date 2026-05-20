@@ -1,0 +1,14 @@
+-- Replace Wish rating with upvotes/downvotes
+ALTER TABLE "Wish" DROP COLUMN "rating";
+ALTER TABLE "Wish" ADD COLUMN "upvotes" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Wish" ADD COLUMN "downvotes" INTEGER NOT NULL DEFAULT 0;
+
+-- Create WishVote table
+CREATE TABLE "WishVote" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "wishId" INTEGER NOT NULL,
+    "voterIp" TEXT NOT NULL,
+    "value" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "WishVote_wishId_fkey" FOREIGN KEY ("wishId") REFERENCES "Wish" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
