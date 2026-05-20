@@ -94,3 +94,12 @@ export async function getAllSongs() {
     orderBy: [{ artist: "asc" }, { title: "asc" }],
   });
 }
+
+export async function getBottomRankings(limit = 10): Promise<RankingEntry[]> {
+  const songs = await prisma.song.findMany({
+    orderBy: { rating: "asc" },
+    take: limit,
+    select: { artist: true, title: true, rating: true },
+  });
+  return songs;
+}
