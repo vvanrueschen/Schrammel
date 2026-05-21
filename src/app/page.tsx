@@ -8,11 +8,16 @@ import Wishlist from "@/components/Wishlist";
 
 const STREAM_URL = process.env.NEXT_PUBLIC_STREAM_URL || "http://localhost/listen/schrammel_stream/schrammel";
 
+function generateId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 11)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
 function getDeviceId(): string {
-  let id = typeof window !== "undefined" ? localStorage.getItem("schrammel_device_id") : null;
+  if (typeof window === "undefined") return "";
+  let id = localStorage.getItem("schrammel_device_id");
   if (!id) {
-    id = crypto.randomUUID();
-    if (typeof window !== "undefined") localStorage.setItem("schrammel_device_id", id);
+    id = generateId();
+    localStorage.setItem("schrammel_device_id", id);
   }
   return id;
 }
@@ -23,7 +28,11 @@ export default function Home() {
   const [hasVoted, setHasVoted] = useState(false);
   const [topTenRefreshKey, setTopTenRefreshKey] = useState(0);
   const [bottomTenRefreshKey, setBottomTenRefreshKey] = useState(0);
-  const deviceId = typeof window !== "undefined" ? getDeviceId() : "";
+  const [deviceId, setDeviceId] = useState("");
+
+  useEffect(() => {
+    setDeviceId(getDeviceId());
+  }, []);
 
   const fetchNowPlaying = useCallback(async () => {
     try {
