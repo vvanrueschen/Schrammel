@@ -5,6 +5,8 @@ const AZURACAST_API_URL = process.env.AZURACAST_API_URL || "http://vinceberrypi"
 const AZURACAST_API_TOKEN = process.env.AZURACAST_API_TOKEN || "";
 const STATION_ID = 1;
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   const voterIp = request.headers.get("x-forwarded-for") || "127.0.0.1";
 
@@ -15,7 +17,6 @@ export async function GET(request: NextRequest) {
         headers: {
           "X-API-Key": AZURACAST_API_TOKEN,
         },
-        next: { revalidate: 10 },
       }
     );
 
