@@ -25,7 +25,14 @@ export async function GET(request: NextRequest) {
 
       if (nowPlaying) {
         const artist = nowPlaying.artist || "Unknown Artist";
-        const title = nowPlaying.text || nowPlaying.title || "Unknown Title";
+        let title = nowPlaying.title || nowPlaying.text || "Unknown Title";
+
+        // Azuracast often includes "Artist - " prefix in both title and text fields
+        const prefix = `${artist} - `;
+        if (title.startsWith(prefix)) {
+          title = title.slice(prefix.length);
+        }
+
         const azuracastId = nowPlaying.id;
 
         // Backfill azuracastId for matching song in our DB

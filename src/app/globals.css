@@ -109,19 +109,27 @@ main {
   gap: 12px;
   margin-top: 16px;
   align-items: center;
-  flex-wrap: wrap;
+}
+
+.player-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 @media (max-width: 640px) {
   .player-controls {
-    gap: 8px;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .player-buttons {
     justify-content: center;
+    width: 100%;
   }
   
   .volume-slider {
     width: 100%;
-    order: 10;
-    margin-top: 8px;
   }
 }
 

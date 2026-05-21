@@ -97,29 +97,31 @@ export default function Player({
             </div>
           )}
           <div className="player-controls">
-            <button
-              onClick={() => handleVote("-")}
-              className="vote-btn vote-down"
-              aria-label="Vote down"
-              disabled={hasVoted}
-            >
-              👎
-            </button>
-            <button
-              onClick={togglePlay}
-              className="play-btn"
-              aria-label={isPlaying ? "Pause" : "Play"}
-            >
-              {isPlaying ? "⏸" : "▶"}
-            </button>
-            <button
-              onClick={() => handleVote("+")}
-              className="vote-btn vote-up"
-              aria-label="Vote up"
-              disabled={hasVoted}
-            >
-              👍
-            </button>
+            <div className="player-buttons">
+              <button
+                onClick={() => handleVote("-")}
+                className="vote-btn vote-down"
+                aria-label="Vote down"
+                disabled={hasVoted}
+              >
+                👎
+              </button>
+              <button
+                onClick={togglePlay}
+                className="play-btn"
+                aria-label={isPlaying ? "Pause" : "Play"}
+              >
+                {isPlaying ? "⏸" : "▶"}
+              </button>
+              <button
+                onClick={() => handleVote("+")}
+                className="vote-btn vote-up"
+                aria-label="Vote up"
+                disabled={hasVoted}
+              >
+                👍
+              </button>
+            </div>
             <input
               type="range"
               min="0"
