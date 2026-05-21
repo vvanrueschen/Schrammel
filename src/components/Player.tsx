@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 interface PlayerProps {
   streamUrl: string;
@@ -9,6 +9,9 @@ interface PlayerProps {
   currentTitle: string;
   hasVoted: boolean;
 }
+
+const MAX_RETRY_DELAY = 60000;
+const INITIAL_RETRY_DELAY = 2000;
 
 export default function Player({
   streamUrl,
@@ -20,44 +23,79 @@ export default function Player({
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(100);
   const [isOffline, setIsOffline] = useState(false);
+  const [retryDisplay, setRetryDisplay] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryCountRef = useRef(0);
   const isIntentionalStop = useRef(false);
 
+  const scheduleRetry = useCallback((count: number) => {
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    const delay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, count - 1), MAX_RETRY_DELAY);
+    retryTimerRef.current = setTimeout(() => {
+      if (audioRef.current && !isIntentionalStop.current) {
+        audioRef.current.src = streamUrl;
+        audioRef.current.load();
+        audioRef.current.play().then(() => {
+          setIsOffline(false);
+          retryCountRef.current = 0;
+          setRetryDisplay(0);
+        }).catch(() => {
+          retryCountRef.current++;
+          setRetryDisplay(retryCountRef.current);
+          scheduleRetry(retryCountRef.current);
+        });
+      }
+    }, delay);
+  }, [streamUrl]);
+
   useEffect(() => {
-    audioRef.current = new Audio();
-    audioRef.current.volume = volume / 100;
+    const audio = new Audio();
+    audio.preload = "none";
+    audio.volume = volume / 100;
+    audioRef.current = audio;
 
-    audioRef.current.addEventListener("ended", () => {
-      audioRef.current?.play();
-    });
-
-    audioRef.current.addEventListener("error", () => {
+    audio.addEventListener("error", () => {
       if (!isIntentionalStop.current) {
         setIsOffline(true);
-        setTimeout(() => setIsOffline(false), 30000);
+        retryCountRef.current++;
+        setRetryDisplay(retryCountRef.current);
+        scheduleRetry(retryCountRef.current);
       }
       isIntentionalStop.current = false;
     });
 
     return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";
       }
     };
-  }, []);
+  }, [scheduleRetry]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
 
     if (isPlaying) {
       isIntentionalStop.current = true;
-      audioRef.current.src = "";
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      setIsOffline(false);
+      retryCountRef.current = 0;
+      setRetryDisplay(0);
+      audioRef.current.muted = true;
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
       audioRef.current.src = streamUrl;
-      audioRef.current.play().catch(() => setIsOffline(true));
+      audioRef.current.load();
+      audioRef.current.muted = false;
+      audioRef.current.play().catch(() => {
+        setIsOffline(true);
+        retryCountRef.current = 1;
+        setRetryDisplay(1);
+        scheduleRetry(1);
+      });
       setIsPlaying(true);
     }
   };
@@ -93,7 +131,7 @@ export default function Player({
           </div>
           {isOffline && (
             <div className="offline-indicator">
-              Stream offline — retrying in 30s...
+              Stream offline — retrying in ~{Math.min(INITIAL_RETRY_DELAY * Math.pow(2, retryDisplay - 1) / 1000, MAX_RETRY_DELAY / 1000).toFixed(0)}s...
             </div>
           )}
           <div className="player-controls">
