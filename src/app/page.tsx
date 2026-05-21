@@ -9,7 +9,7 @@ import Wishlist from "@/components/Wishlist";
 const STREAM_URL = process.env.NEXT_PUBLIC_STREAM_URL || "http://localhost/listen/schrammel_stream/schrammel";
 
 export default function Home() {
-  const [currentArtist, setCurrentArtist] = useState("Der Schrammel.Reloaded.Stream");
+  const [currentArtist, setCurrentArtist] = useState("Der Schrammel Reloaded Stream");
   const [currentTitle, setCurrentTitle] = useState("Loading...");
   const [hasVoted, setHasVoted] = useState(false);
   const [topTenRefreshKey, setTopTenRefreshKey] = useState(0);

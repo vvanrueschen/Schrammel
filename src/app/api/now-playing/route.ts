@@ -62,28 +62,46 @@ export async function GET(request: NextRequest) {
 async function backfillAzuracastId(artist: string, title: string, azuracastId: string | undefined): Promise<void> {
   if (!azuracastId) return;
   try {
-    await prisma.song.updateMany({
-      where: {
-        artist,
-        title,
-        azuracastId: null,
-      },
-      data: { azuracastId },
+    const existingSong = await prisma.song.findFirst({
+      where: { artist, title },
     });
+
+    if (!existingSong) return;
+
+    if (existingSong.azuracastId === azuracastId) return;
+
+    if (existingSong.azuracastId && existingSong.azuracastId.startsWith("local-")) {
+      await prisma.$transaction([
+        prisma.vote.updateMany({
+          where: { songId: existingSong.azuracastId },
+          data: { songId: azuracastId },
+        }),
+        prisma.wish.updateMany({
+          where: { songId: existingSong.azuracastId },
+          data: { songId: azuracastId },
+        }),
+        prisma.song.delete({ where: { azuracastId: existingSong.azuracastId } }),
+      ]);
+    } else {
+      await prisma.song.update({
+        where: { azuracastId: existingSong.azuracastId },
+        data: { azuracastId },
+      });
+    }
   } catch {
     // Ignore errors — backfill is best-effort
   }
 }
 
 async function checkHasVoted(artist: string, title: string, voterIp: string): Promise<boolean> {
-  const song = await prisma.song.findUnique({
-    where: { artist_title: { artist, title } },
+  const song = await prisma.song.findFirst({
+    where: { artist, title },
   });
 
   if (!song) return false;
 
   const vote = await prisma.vote.findFirst({
-    where: { songId: song.id, voterIp },
+    where: { songId: song.azuracastId, voterIp },
   });
 
   return !!vote;

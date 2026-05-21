@@ -13,7 +13,7 @@ interface NowPlayingProps {
 
 export default function NowPlaying({ onSongChange }: NowPlayingProps) {
   const [data, setData] = useState<NowPlayingData>({
-    artist: "Der Schrammel.Reloaded.Stream",
+    artist: "Der Schrammel Reloaded Stream",
     title: "Loading...",
   });
   const [prevKey, setPrevKey] = useState("");

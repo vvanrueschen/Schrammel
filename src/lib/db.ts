@@ -24,18 +24,19 @@ export async function voteOnSong(
   value: number,
   voterIp: string
 ): Promise<{ success: boolean; message: string }> {
-  let song = await prisma.song.findUnique({
-    where: { artist_title: { artist, title } },
+  let song = await prisma.song.findFirst({
+    where: { artist, title },
   });
 
   if (!song) {
+    const localId = `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     song = await prisma.song.create({
-      data: { artist, title, rating: 0 },
+      data: { azuracastId: localId, artist, title, rating: 0 },
     });
   }
 
   const existingVote = await prisma.vote.findFirst({
-    where: { songId: song.id, voterIp },
+    where: { songId: song.azuracastId, voterIp },
   });
 
   if (existingVote) {
@@ -44,10 +45,10 @@ export async function voteOnSong(
 
   await prisma.$transaction([
     prisma.vote.create({
-      data: { songId: song.id, voterIp, value },
+      data: { songId: song.azuracastId, voterIp, value },
     }),
     prisma.song.update({
-      where: { id: song.id },
+      where: { azuracastId: song.azuracastId },
       data: { rating: { increment: value } },
     }),
   ]);
@@ -192,8 +193,8 @@ export async function cleanupWorstSongs(count = 3): Promise<{
     }
 
     await prisma.$transaction([
-      prisma.vote.deleteMany({ where: { songId: song.id } }),
-      prisma.song.delete({ where: { id: song.id } }),
+      prisma.vote.deleteMany({ where: { songId: song.azuracastId } }),
+      prisma.song.delete({ where: { azuracastId: song.azuracastId } }),
     ]);
 
     deleted.push({

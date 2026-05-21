@@ -31,15 +31,21 @@ async function main() {
       const artist = match[1].trim();
       const title = match[2].trim();
 
-      await prisma.song.upsert({
-        where: { artist_title: { artist, title } },
-        update: {},
-        create: {
-          artist,
-          title,
-          filePath: `Schrammel/${file}`,
-        },
+      const existing = await prisma.song.findFirst({
+        where: { artist, title },
       });
+
+      if (!existing) {
+        const localId = `local-seed-${file.replace(/\.[^.]+$/, "")}`;
+        await prisma.song.create({
+          data: {
+            azuracastId: localId,
+            artist,
+            title,
+            filePath: `Schrammel/${file}`,
+          },
+        });
+      }
     }
   }
 

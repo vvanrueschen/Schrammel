@@ -11,22 +11,20 @@ datasource db {
 }
 
 model Song {
-  id        Int      @id @default(autoincrement())
+  azuracastId String   @id
   artist    String
   title     String
   filePath    String?
-  azuracastId String?  // AzuraCast media ID for deletion via API
   rating      Int      @default(0)
   plays       Int      @default(0)
   wishes    Wish[]
   votes     Vote[]
-  @@unique([artist, title])
 }
 
 model Wish {
   id        Int      @id @default(autoincrement())
-  songId    Int?
-  song      Song?    @relation(fields: [songId], references: [id])
+  songId    String?
+  song      Song?    @relation(fields: [songId], references: [azuracastId])
   artist    String
   title     String
   weblink   String?
@@ -38,8 +36,8 @@ model Wish {
 
 model Vote {
   id        Int      @id @default(autoincrement())
-  songId    Int
-  song      Song     @relation(fields: [songId], references: [id])
+  songId    String
+  song      Song     @relation(fields: [songId], references: [azuracastId])
   voterIp   String
   value     Int
   createdAt DateTime @default(now())

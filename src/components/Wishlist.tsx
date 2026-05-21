@@ -124,8 +124,9 @@ export default function Wishlist() {
           {wishes.map((wish) => (
             <li key={wish.id} className="wish-item">
               <div className="wish-info">
-                <span className="wish-title">{wish.title}</span>
-                <span className="wish-artist">{wish.artist}</span>
+                <span className="wish-title">{wish.artist}</span>
+                <span className="wish-separator"> — </span>
+                <span className="wish-artist">{wish.title}</span>
               </div>
               <div className="wish-votes">
                 <button

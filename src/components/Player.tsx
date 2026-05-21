@@ -21,6 +21,7 @@ export default function Player({
   const [volume, setVolume] = useState(100);
   const [isOffline, setIsOffline] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isIntentionalStop = useRef(false);
 
   useEffect(() => {
     audioRef.current = new Audio();
@@ -31,8 +32,11 @@ export default function Player({
     });
 
     audioRef.current.addEventListener("error", () => {
-      setIsOffline(true);
-      setTimeout(() => setIsOffline(false), 30000);
+      if (!isIntentionalStop.current) {
+        setIsOffline(true);
+        setTimeout(() => setIsOffline(false), 30000);
+      }
+      isIntentionalStop.current = false;
     });
 
     return () => {
@@ -47,6 +51,7 @@ export default function Player({
     if (!audioRef.current) return;
 
     if (isPlaying) {
+      isIntentionalStop.current = true;
       audioRef.current.src = "";
       audioRef.current.pause();
       setIsPlaying(false);
@@ -71,15 +76,11 @@ export default function Player({
 
   return (
     <div className="neon-card hero-card">
-      <div className="flex items-center gap-5">
+      <div className="flex flex-col sm:flex-row items-center gap-5">
         <div className="album-art">
-          {isPlaying ? (
-            <div className="play-icon">⏸</div>
-          ) : (
-            <div className="play-icon">▶</div>
-          )}
+          <img src="/cover_1.png" alt="Album cover" className="w-full h-full object-cover" />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 w-full sm:w-auto text-center sm:text-left">
           <h1 className="stream-title">
             Der Schrammel<span className="text-neon-pink">.</span>
             Reloaded<span className="text-neon-blue">.</span>Stream
