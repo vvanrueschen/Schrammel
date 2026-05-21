@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   }
 
   const value = vote === "+" ? 1 : -1;
-  const voterIp = request.headers.get("x-forwarded-for") || "127.0.0.1";
+  const voterIp = request.ip || request.headers.get("x-forwarded-for") || "127.0.0.1";
 
   const result = await voteOnWish(parseInt(wishId, 10), value, voterIp);
   return NextResponse.json({ message: result.message, success: result.success });

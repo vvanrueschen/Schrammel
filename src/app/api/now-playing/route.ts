@@ -8,7 +8,7 @@ const STATION_ID = 1;
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const voterIp = request.headers.get("x-forwarded-for") || "127.0.0.1";
+  const voterIp = request.ip || request.headers.get("x-forwarded-for") || "127.0.0.1";
 
   try {
     const response = await fetch(
