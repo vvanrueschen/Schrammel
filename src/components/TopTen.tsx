@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { RankingEntry } from "@/types";
+import { useSSE } from "@/hooks/useSSE";
 
 interface TopTenProps {
   refreshKey?: number;
@@ -11,7 +12,7 @@ export default function TopTen({ refreshKey = 0 }: TopTenProps) {
   const [rankings, setRankings] = useState<RankingEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchRankings = async () => {
+  const fetchRankings = useCallback(async () => {
     try {
       const res = await fetch("/api/ranking");
       const data = await res.json();
@@ -21,11 +22,13 @@ export default function TopTen({ refreshKey = 0 }: TopTenProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchRankings();
-  }, [refreshKey]);
+  }, [refreshKey, fetchRankings]);
+
+  useSSE(fetchRankings);
 
   if (loading) {
     return (

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createWish, getWishes } from "@/lib/db";
+import { broadcastUpdate } from "@/lib/events";
 
 export async function GET() {
   const wishes = await getWishes();
@@ -17,5 +18,10 @@ export async function POST(request: NextRequest) {
   }
 
   const result = await createWish(artist, title, weblink || undefined);
+
+  if (result.success) {
+    broadcastUpdate();
+  }
+
   return NextResponse.json({ message: result.message, success: result.success });
 }

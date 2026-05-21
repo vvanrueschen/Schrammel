@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSSE } from "@/hooks/useSSE";
 
 interface Wish {
   id: number;
@@ -23,7 +24,7 @@ export default function Wishlist({ deviceId }: WishlistProps) {
   const [weblink, setWeblink] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchWishes = async () => {
+  const fetchWishes = useCallback(async () => {
     try {
       const res = await fetch("/api/wish");
       const data = await res.json();
@@ -33,11 +34,13 @@ export default function Wishlist({ deviceId }: WishlistProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchWishes();
-  }, []);
+  }, [fetchWishes]);
+
+  useSSE(fetchWishes);
 
   const handleSubmit = async () => {
     if (!artist || !title) {
