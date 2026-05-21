@@ -8,7 +8,7 @@ const STATION_ID = 1;
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const voterIp = request.ip || request.headers.get("x-forwarded-for") || "127.0.0.1";
+  const deviceId = request.nextUrl.searchParams.get("deviceId") || "";
 
   try {
     const response = await fetch(
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
         // Backfill azuracastId for matching song in our DB
         await backfillAzuracastId(artist, title, azuracastId);
 
-        const hasVoted = await checkHasVoted(artist, title, voterIp);
+        const hasVoted = await checkHasVoted(artist, title, deviceId);
         return NextResponse.json({ artist, title, hasVoted });
       }
     }
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (nowPlaying) {
-    const hasVoted = await checkHasVoted(nowPlaying.artist, nowPlaying.title, voterIp);
+    const hasVoted = await checkHasVoted(nowPlaying.artist, nowPlaying.title, deviceId);
     return NextResponse.json({
       artist: nowPlaying.artist,
       title: nowPlaying.title,
@@ -101,7 +101,7 @@ async function backfillAzuracastId(artist: string, title: string, azuracastId: s
   }
 }
 
-async function checkHasVoted(artist: string, title: string, voterIp: string): Promise<boolean> {
+async function checkHasVoted(artist: string, title: string, deviceId: string): Promise<boolean> {
   const song = await prisma.song.findFirst({
     where: { artist, title },
   });
@@ -109,7 +109,7 @@ async function checkHasVoted(artist: string, title: string, voterIp: string): Pr
   if (!song) return false;
 
   const vote = await prisma.vote.findFirst({
-    where: { songId: song.azuracastId, voterIp },
+    where: { songId: song.azuracastId, deviceId },
   });
 
   return !!vote;

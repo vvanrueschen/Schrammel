@@ -22,7 +22,7 @@ export async function voteOnSong(
   artist: string,
   title: string,
   value: number,
-  voterIp: string
+  deviceId: string
 ): Promise<{ success: boolean; message: string }> {
   let song = await prisma.song.findFirst({
     where: { artist, title },
@@ -36,7 +36,7 @@ export async function voteOnSong(
   }
 
   const existingVote = await prisma.vote.findFirst({
-    where: { songId: song.azuracastId, voterIp },
+    where: { songId: song.azuracastId, deviceId },
   });
 
   if (existingVote) {
@@ -45,7 +45,7 @@ export async function voteOnSong(
 
   await prisma.$transaction([
     prisma.vote.create({
-      data: { songId: song.azuracastId, voterIp, value },
+      data: { songId: song.azuracastId, deviceId, value },
     }),
     prisma.song.update({
       where: { azuracastId: song.azuracastId },
@@ -76,7 +76,7 @@ export async function createWish(
 export async function voteOnWish(
   wishId: number,
   value: number,
-  voterIp: string
+  deviceId: string
 ): Promise<{ success: boolean; message: string }> {
   const wish = await prisma.wish.findUnique({
     where: { id: wishId },
@@ -87,7 +87,7 @@ export async function voteOnWish(
   }
 
   const existingVote = await prisma.wishVote.findFirst({
-    where: { wishId, voterIp },
+    where: { wishId, deviceId },
   });
 
   if (existingVote) {
@@ -96,7 +96,7 @@ export async function voteOnWish(
 
   await prisma.$transaction([
     prisma.wishVote.create({
-      data: { wishId, voterIp, value },
+      data: { wishId, deviceId, value },
     }),
     prisma.wish.update({
       where: { id: wishId },

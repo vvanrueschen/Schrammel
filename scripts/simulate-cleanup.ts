@@ -23,7 +23,7 @@ async function main() {
     await prisma.vote.create({
       data: {
         songId: targetAzuracastId,
-        voterIp: `192.168.1.${100 + i}`,
+        deviceId: `device-${100 + i}`,
         value: -1,
       },
     });

@@ -5,14 +5,14 @@ export async function POST(request: NextRequest) {
   const body = await request.formData();
   const wishId = body.get("wishId") as string;
   const vote = body.get("vote") as string;
+  const deviceId = body.get("deviceId") as string;
 
-  if (!wishId || !vote) {
+  if (!wishId || !vote || !deviceId) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
   const value = vote === "+" ? 1 : -1;
-  const voterIp = request.ip || request.headers.get("x-forwarded-for") || "127.0.0.1";
 
-  const result = await voteOnWish(parseInt(wishId, 10), value, voterIp);
+  const result = await voteOnWish(parseInt(wishId, 10), value, deviceId);
   return NextResponse.json({ message: result.message, success: result.success });
 }

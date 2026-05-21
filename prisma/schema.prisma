@@ -38,7 +38,7 @@ model Vote {
   id        Int      @id @default(autoincrement())
   songId    String
   song      Song     @relation(fields: [songId], references: [azuracastId])
-  voterIp   String
+  deviceId  String
   value     Int
   createdAt DateTime @default(now())
 }
@@ -54,7 +54,7 @@ model WishVote {
   id        Int      @id @default(autoincrement())
   wishId    Int
   wish      Wish     @relation(fields: [wishId], references: [id])
-  voterIp   String
+  deviceId  String
   value     Int
   createdAt DateTime @default(now())
 }

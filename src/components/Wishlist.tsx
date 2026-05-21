@@ -12,7 +12,11 @@ interface Wish {
   createdAt: string;
 }
 
-export default function Wishlist() {
+interface WishlistProps {
+  deviceId: string;
+}
+
+export default function Wishlist({ deviceId }: WishlistProps) {
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [artist, setArtist] = useState("");
   const [title, setTitle] = useState("");
@@ -66,6 +70,7 @@ export default function Wishlist() {
     const formData = new FormData();
     formData.append("wishId", wishId.toString());
     formData.append("vote", direction);
+    formData.append("deviceId", deviceId);
 
     const res = await fetch("/api/wish/vote", {
       method: "POST",
