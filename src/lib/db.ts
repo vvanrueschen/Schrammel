@@ -135,7 +135,7 @@ export async function getBottomRankings(limit = 10): Promise<RankingEntry[]> {
   return songs;
 }
 
-const DELETION_MIN_VOTES = 3;
+const DELETION_MIN_VOTES = 5;
 const DELETION_MAX_RATING = -5;
 const DELETION_MAX_COUNT = 10;
 
