@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getVoterFingerprint } from "@/lib/fingerprint";
 
 const AZURACAST_API_URL = process.env.AZURACAST_API_URL || "http://vinceberrypi";
 const AZURACAST_API_TOKEN = process.env.AZURACAST_API_TOKEN || "";
@@ -8,7 +9,8 @@ const STATION_ID = 1;
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const deviceId = request.nextUrl.searchParams.get("deviceId") || "";
+  const rawDeviceId = request.nextUrl.searchParams.get("deviceId") || "";
+  const voterId = getVoterFingerprint(request, rawDeviceId);
 
   try {
     const response = await fetch(
@@ -45,7 +47,7 @@ export async function GET(request: NextRequest) {
         // Backfill azuracastId for matching song in our DB and update stale names
         await backfillAzuracastId(artist, title, azuracastId);
 
-        const hasVoted = await checkHasVoted(azuracastId, deviceId);
+        const hasVoted = await checkHasVoted(azuracastId, voterId);
         return NextResponse.json({ artist, title, azuracastId, hasVoted });
       }
     }
@@ -62,7 +64,7 @@ export async function GET(request: NextRequest) {
       where: { artist: nowPlaying.artist, title: nowPlaying.title },
     });
     const azuracastId = song?.azuracastId ?? null;
-    const hasVoted = await checkHasVoted(azuracastId, deviceId);
+    const hasVoted = await checkHasVoted(azuracastId, voterId);
     return NextResponse.json({
       artist: nowPlaying.artist,
       title: nowPlaying.title,

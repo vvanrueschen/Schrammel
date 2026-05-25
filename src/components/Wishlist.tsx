@@ -11,6 +11,7 @@ interface Wish {
   upvotes: number;
   downvotes: number;
   createdAt: string;
+  hasVoted: boolean;
 }
 
 interface WishlistProps {
@@ -25,8 +26,9 @@ export default function Wishlist({ deviceId }: WishlistProps) {
   const [loading, setLoading] = useState(true);
 
   const fetchWishes = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const res = await fetch("/api/wish");
+      const res = await fetch(`/api/wish?deviceId=${encodeURIComponent(deviceId)}`);
       const data = await res.json();
       setWishes(data);
     } catch {
@@ -34,7 +36,7 @@ export default function Wishlist({ deviceId }: WishlistProps) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [deviceId]);
 
   useEffect(() => {
     fetchWishes();
@@ -139,12 +141,14 @@ export default function Wishlist({ deviceId }: WishlistProps) {
               <div className="wish-votes">
                 <button
                   onClick={() => handleVote(wish.id, "+")}
+                  disabled={wish.hasVoted}
                   className="neon-btn neon-btn-sm vote-btn upvote"
                 >
                   ▲ {wish.upvotes}
                 </button>
                 <button
                   onClick={() => handleVote(wish.id, "-")}
+                  disabled={wish.hasVoted}
                   className="neon-btn neon-btn-sm vote-btn downvote"
                 >
                   ▼ {wish.downvotes}

@@ -26,7 +26,7 @@ export default function Home() {
   const [currentArtist, setCurrentArtist] = useState("Der Schrammel Reloaded Stream");
   const [currentTitle, setCurrentTitle] = useState("Loading...");
   const [currentSongId, setCurrentSongId] = useState<string | null>(null);
-  const [hasVoted, setHasVoted] = useState(false);
+  const [hasVoted, setHasVoted] = useState(true);
   const [topTenRefreshKey, setTopTenRefreshKey] = useState(0);
   const [bottomTenRefreshKey, setBottomTenRefreshKey] = useState(0);
   const [deviceId, setDeviceId] = useState("");
@@ -43,7 +43,7 @@ export default function Home() {
         setCurrentArtist(data.artist);
         setCurrentTitle(data.title);
         setCurrentSongId(data.azuracastId ?? null);
-        setHasVoted(data.hasVoted ?? false);
+        setHasVoted(data.hasVoted ?? true);
       }
     } catch {
       // ignore

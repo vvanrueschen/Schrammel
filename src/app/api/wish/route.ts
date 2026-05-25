@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createWish, getWishes } from "@/lib/db";
 import { broadcastUpdate } from "@/lib/events";
+import { getVoterFingerprint } from "@/lib/fingerprint";
 
 const MAX_STRING_LENGTH = 255;
 const MAX_WEBLINK_LENGTH = 2048;
 
-export async function GET() {
-  const wishes = await getWishes();
+export async function GET(request: NextRequest) {
+  const rawDeviceId = request.nextUrl.searchParams.get("deviceId") || "";
+  const voterId = getVoterFingerprint(request, rawDeviceId);
+  const wishes = await getWishes(voterId);
   return NextResponse.json(wishes);
 }
 

@@ -103,9 +103,37 @@ export async function voteOnWish(
   return { success: true, message: "Record updated successfully" };
 }
 
-export async function getWishes() {
-  const wishes = await prisma.wish.findMany();
-  return wishes.sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes));
+interface WishWithHasVoted {
+  id: number;
+  artist: string;
+  title: string;
+  weblink: string | null;
+  upvotes: number;
+  downvotes: number;
+  createdAt: Date;
+  hasVoted: boolean;
+}
+
+export async function getWishes(voterId: string): Promise<WishWithHasVoted[]> {
+  const [wishes, userVotes] = await Promise.all([
+    prisma.wish.findMany(),
+    prisma.wishVote.findMany({ where: { deviceId: voterId } }),
+  ]);
+
+  const votedWishIds = new Set(userVotes.map((v) => v.wishId));
+
+  return wishes
+    .map((w) => ({
+      id: w.id,
+      artist: w.artist,
+      title: w.title,
+      weblink: w.weblink,
+      upvotes: w.upvotes,
+      downvotes: w.downvotes,
+      createdAt: w.createdAt,
+      hasVoted: votedWishIds.has(w.id),
+    }))
+    .sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes));
 }
 
 export async function getAllSongs() {
