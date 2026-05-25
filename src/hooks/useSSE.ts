@@ -2,29 +2,36 @@ import { useEffect, useRef } from "react";
 
 export function useSSE(onUpdate: () => void) {
   const onUpdateRef = useRef(onUpdate);
-  onUpdateRef.current = onUpdate;
+
+  useEffect(() => {
+    onUpdateRef.current = onUpdate;
+  }, [onUpdate]);
 
   useEffect(() => {
     if (typeof EventSource === "undefined") return;
 
-    const eventSource = new EventSource("/api/events");
+    let es: EventSource | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
-    eventSource.addEventListener("update", () => {
-      onUpdateRef.current();
-    });
+    const connect = () => {
+      es = new EventSource("/api/events");
 
-    eventSource.onerror = () => {
-      eventSource.close();
-      setTimeout(() => {
-        const retry = new EventSource("/api/events");
-        retry.addEventListener("update", () => {
-          onUpdateRef.current();
-        });
-      }, 5000);
+      es.addEventListener("update", () => {
+        onUpdateRef.current();
+      });
+
+      es.onerror = () => {
+        es?.close();
+        es = null;
+        retryTimer = setTimeout(connect, 5000);
+      };
     };
 
+    connect();
+
     return () => {
-      eventSource.close();
+      if (retryTimer) clearTimeout(retryTimer);
+      es?.close();
     };
   }, []);
 }

@@ -29,10 +29,9 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Runs as root so we can chmod the volume-mounted prisma dir.
-# Docker containers provide sufficient isolation; the nextjs user is not used.
-RUN printf '#!/bin/sh\nset -e\nchmod -R 777 /app/prisma\nnpx prisma migrate deploy\nexec node server.js\n' > /app/start.sh \
-    && chmod +x /app/start.sh
+# Runs as root only during startup to fix volume permissions, then drops to nextjs user.
+RUN printf '#!/bin/sh\nset -e\nchmod -R 777 /app/prisma\nnpx prisma migrate deploy\nexec su-exec nextjs node server.js\n' > /app/start.sh \
+    && chmod +x /app/start.sh && apk add --no-cache su-exec
 
 EXPOSE 3000
 ENV PORT=3000

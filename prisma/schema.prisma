@@ -19,6 +19,8 @@ model Song {
   plays       Int      @default(0)
   wishes    Wish[]
   votes     Vote[]
+
+  @@unique([artist, title])
 }
 
 model Wish {

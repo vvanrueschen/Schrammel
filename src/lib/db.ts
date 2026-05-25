@@ -24,16 +24,13 @@ export async function voteOnSong(
   value: number,
   deviceId: string
 ): Promise<{ success: boolean; message: string }> {
-  let song = await prisma.song.findFirst({
-    where: { artist, title },
-  });
+  const localId = `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-  if (!song) {
-    const localId = `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    song = await prisma.song.create({
-      data: { azuracastId: localId, artist, title, rating: 0 },
-    });
-  }
+  const song = await prisma.song.upsert({
+    where: { artist_title: { artist, title } },
+    update: {},
+    create: { azuracastId: localId, artist, title, rating: 0 },
+  });
 
   const existingVote = await prisma.vote.findFirst({
     where: { songId: song.azuracastId, deviceId },
@@ -172,8 +169,9 @@ export async function cleanupWorstSongs(count = 3): Promise<{
 
   for (const song of filteredSongs) {
     let azuracastDeleted = false;
+    let shouldDeleteFromDb = true;
 
-    if (song.azuracastId) {
+    if (song.azuracastId && !song.azuracastId.startsWith("local-")) {
       try {
         const response = await fetch(
           `${AZURACAST_API_URL}/api/station/${STATION_ID}/file/${song.azuracastId}`,
@@ -185,11 +183,27 @@ export async function cleanupWorstSongs(count = 3): Promise<{
           }
         );
         azuracastDeleted = response.ok;
+        if (!response.ok) {
+          console.error(
+            `Failed to delete song "${song.artist} - ${song.title}" from AzuraCast: ${response.status}`
+          );
+          shouldDeleteFromDb = false;
+        }
       } catch {
         console.error(
           `Failed to delete song "${song.artist} - ${song.title}" from AzuraCast`
         );
+        shouldDeleteFromDb = false;
       }
+    }
+
+    if (!shouldDeleteFromDb) {
+      deleted.push({
+        artist: song.artist,
+        title: song.title,
+        azuracastDeleted: false,
+      });
+      continue;
     }
 
     await prisma.$transaction([

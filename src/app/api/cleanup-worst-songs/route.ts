@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { cleanupWorstSongs } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
-  const cleanupToken = process.env.CLEANUP_SECRET_TOKEN || "";
+  const cleanupToken = process.env.CLEANUP_SECRET_TOKEN;
   const providedToken = request.headers.get("X-Cleanup-Token");
 
-  if (!cleanupToken || providedToken !== cleanupToken) {
+  if (!cleanupToken || !providedToken || providedToken !== cleanupToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
