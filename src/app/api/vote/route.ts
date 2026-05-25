@@ -7,12 +7,13 @@ const MAX_STRING_LENGTH = 255;
 
 export async function POST(request: NextRequest) {
   const body = await request.formData();
+  const azuracastId = (body.get("azuracastId") as string)?.trim();
   const title = (body.get("title") as string)?.trim();
   const artist = (body.get("artist") as string)?.trim();
   const vote = body.get("vote") as string;
   const deviceId = (body.get("deviceId") as string)?.trim();
 
-  if (!artist || !title || !vote || !deviceId) {
+  if (!azuracastId || !artist || !title || !vote || !deviceId) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
 
   const value = vote === "+" ? 1 : -1;
 
-  const result = await voteOnSong(artist, title, value, voterId);
+  const result = await voteOnSong(azuracastId, artist, title, value, voterId);
 
   if (result.success) {
     broadcastUpdate();

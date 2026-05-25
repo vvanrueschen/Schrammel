@@ -19,17 +19,16 @@ export async function getTopRankings(limit = 10): Promise<RankingEntry[]> {
 }
 
 export async function voteOnSong(
+  azuracastId: string,
   artist: string,
   title: string,
   value: number,
   deviceId: string
 ): Promise<{ success: boolean; message: string }> {
-  const localId = `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
   const song = await prisma.song.upsert({
-    where: { artist_title: { artist, title } },
-    update: {},
-    create: { azuracastId: localId, artist, title, rating: 0 },
+    where: { azuracastId },
+    update: { artist, title },
+    create: { azuracastId, artist, title, rating: 0 },
   });
 
   const existingVote = await prisma.vote.findFirst({

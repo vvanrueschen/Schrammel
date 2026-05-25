@@ -42,11 +42,11 @@ export async function GET(request: NextRequest) {
 
         const azuracastId = nowPlaying.id;
 
-        // Backfill azuracastId for matching song in our DB
+        // Backfill azuracastId for matching song in our DB and update stale names
         await backfillAzuracastId(artist, title, azuracastId);
 
-        const hasVoted = await checkHasVoted(artist, title, deviceId);
-        return NextResponse.json({ artist, title, hasVoted });
+        const hasVoted = await checkHasVoted(azuracastId, deviceId);
+        return NextResponse.json({ artist, title, azuracastId, hasVoted });
       }
     }
   } catch {
@@ -58,10 +58,15 @@ export async function GET(request: NextRequest) {
   });
 
   if (nowPlaying) {
-    const hasVoted = await checkHasVoted(nowPlaying.artist, nowPlaying.title, deviceId);
+    const song = await prisma.song.findFirst({
+      where: { artist: nowPlaying.artist, title: nowPlaying.title },
+    });
+    const azuracastId = song?.azuracastId ?? null;
+    const hasVoted = await checkHasVoted(azuracastId, deviceId);
     return NextResponse.json({
       artist: nowPlaying.artist,
       title: nowPlaying.title,
+      azuracastId,
       hasVoted,
     });
   }
@@ -69,6 +74,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     artist: "Der Schrammel.Reloaded.Stream",
     title: "No track info available",
+    azuracastId: null,
     hasVoted: false,
   });
 }
@@ -82,7 +88,16 @@ async function backfillAzuracastId(artist: string, title: string, azuracastId: s
 
     if (!existingSong) return;
 
-    if (existingSong.azuracastId === azuracastId) return;
+    if (existingSong.azuracastId === azuracastId) {
+      // Update stale artist/title if Azuracast has changed them
+      if (existingSong.artist !== artist || existingSong.title !== title) {
+        await prisma.song.update({
+          where: { azuracastId },
+          data: { artist, title },
+        });
+      }
+      return;
+    }
 
     if (existingSong.azuracastId && existingSong.azuracastId.startsWith("local-")) {
       await prisma.$transaction([
@@ -99,7 +114,7 @@ async function backfillAzuracastId(artist: string, title: string, azuracastId: s
     } else {
       await prisma.song.update({
         where: { azuracastId: existingSong.azuracastId },
-        data: { azuracastId },
+        data: { azuracastId, artist, title },
       });
     }
   } catch {
@@ -107,15 +122,11 @@ async function backfillAzuracastId(artist: string, title: string, azuracastId: s
   }
 }
 
-async function checkHasVoted(artist: string, title: string, deviceId: string): Promise<boolean> {
-  const song = await prisma.song.findFirst({
-    where: { artist, title },
-  });
-
-  if (!song) return false;
+async function checkHasVoted(azuracastId: string | null, deviceId: string): Promise<boolean> {
+  if (!azuracastId) return false;
 
   const vote = await prisma.vote.findFirst({
-    where: { songId: song.azuracastId, deviceId },
+    where: { songId: azuracastId, deviceId },
   });
 
   return !!vote;
