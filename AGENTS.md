@@ -60,7 +60,7 @@ Next.js 16 radio stream website with voting, wishlist, and Azuracast integration
 
 - **Stream URL:** `http://vinceberrypi/listen/schrammel_stream/schrammel`
 - **API Docs:** `http://vinceberrypi/docs/api/`
-- **API Token:** `39fa34357bc4ab5c:69bc5de693c9fc2a9aa01b8e29a10331`
+- **API Token:** `21f543e798851504:b537fe0ffed5fd997e89ca66898ab3db`
 - **Station ID:** `1`
 
 ## Environment Variables

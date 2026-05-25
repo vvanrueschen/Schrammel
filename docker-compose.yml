@@ -1,6 +1,8 @@
 services:
   schrammel:
     build: .
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "${APP_PORT:-3000}:${APP_PORT:-3000}"
     volumes:

@@ -20,9 +20,15 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    if (response.ok) {
+    if (!response.ok) {
+      console.error(`[now-playing] Azuracast returned ${response.status}`);
+    } else {
       const data = await response.json();
       const nowPlaying = data.now_playing?.song;
+
+      if (!nowPlaying) {
+        console.warn("[now-playing] Azuracast response missing now_playing.song:", JSON.stringify(data).slice(0, 200));
+      }
 
       if (nowPlaying) {
         const artist = nowPlaying.artist || "Unknown Artist";
