@@ -16,7 +16,7 @@ export function useSSE(onUpdate: () => void) {
     const connect = () => {
       es = new EventSource("/api/events");
 
-      es.addEventListener("update", () => {
+      es.addEventListener("refresh", () => {
         onUpdateRef.current();
       });
 

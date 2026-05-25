@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Player from "@/components/Player";
 import TopTen from "@/components/TopTen";
 import BottomTen from "@/components/BottomTen";
@@ -35,7 +35,8 @@ export default function Home() {
     setDeviceId(getDeviceId());
   }, []);
 
-  const fetchNowPlaying = useCallback(async () => {
+  const fetchHasVoted = useCallback(async () => {
+    if (!deviceId || !currentSongId) return;
     try {
       const res = await fetch(`/api/now-playing?deviceId=${deviceId}`);
       if (res.ok) {
@@ -48,14 +49,56 @@ export default function Home() {
     } catch {
       // ignore
     }
-  }, [deviceId]);
+  }, [deviceId, currentSongId]);
 
   useEffect(() => {
     if (!deviceId) return;
-    fetchNowPlaying();
-    const interval = setInterval(fetchNowPlaying, 10000);
-    return () => clearInterval(interval);
-  }, [fetchNowPlaying, deviceId]);
+    fetchHasVoted();
+  }, [fetchHasVoted, deviceId]);
+
+  useEffect(() => {
+    if (typeof EventSource === "undefined") return;
+
+    let es: EventSource | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const connect = () => {
+      es = new EventSource("/api/events");
+
+      es.addEventListener("now-playing", (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          setCurrentArtist(data.artist);
+          setCurrentTitle(data.title);
+          setCurrentSongId(data.azuracastId ?? null);
+          // Check if user has voted on this new song
+          if (deviceId && data.azuracastId) {
+            fetch(`/api/now-playing?deviceId=${deviceId}`)
+              .then((res) => res.json())
+              .then((np) => setHasVoted(np.hasVoted ?? true))
+              .catch(() => {});
+          } else {
+            setHasVoted(true);
+          }
+        } catch {
+          // Ignore malformed data
+        }
+      });
+
+      es.onerror = () => {
+        es?.close();
+        es = null;
+        retryTimer = setTimeout(connect, 5000);
+      };
+    };
+
+    connect();
+
+    return () => {
+      if (retryTimer) clearTimeout(retryTimer);
+      es?.close();
+    };
+  }, [deviceId]);
 
   const handleVote = async (direction: "+" | "-") => {
     if (hasVoted || !currentSongId) return;

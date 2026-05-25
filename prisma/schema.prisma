@@ -45,13 +45,6 @@ model Vote {
   createdAt DateTime @default(now())
 }
 
-model NowPlaying {
-  id        Int      @id @default(autoincrement())
-  artist    String
-  title     String
-  updatedAt DateTime @updatedAt
-}
-
 model WishVote {
   id        Int      @id @default(autoincrement())
   wishId    Int

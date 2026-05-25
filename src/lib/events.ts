@@ -1,9 +1,9 @@
-type EventCallback = () => void;
+type EventCallback = (data: string) => void;
 
 const listeners = new Set<EventCallback>();
 
-export function broadcastUpdate() {
-  listeners.forEach((cb) => cb());
+export function broadcastUpdate(data = "") {
+  listeners.forEach((cb) => cb(data));
 }
 
 export function addListener(cb: EventCallback) {
